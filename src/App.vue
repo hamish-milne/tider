@@ -1,32 +1,87 @@
 <template>
-  <div id="app">
-    <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
-    </div>
-    <router-view />
-  </div>
+  <v-app>
+    <v-app-bar color="primary" app dark dense clipped-left>
+      <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
+
+      <v-toolbar-title>Reddit</v-toolbar-title>
+
+      <v-spacer></v-spacer>
+
+      <v-btn icon>
+        <v-icon>mdi-magnify</v-icon>
+      </v-btn>
+
+      <v-btn icon>
+        <v-icon>mdi-filter</v-icon>
+      </v-btn>
+
+      <v-btn icon>
+        <v-icon>mdi-dots-vertical</v-icon>
+      </v-btn>
+    </v-app-bar>
+
+    <v-navigation-drawer app v-model="drawer" absolute clipped mini-variant>
+      <v-list nav dense>
+        <v-list-item-group>
+          <v-list-item>
+            <v-list-item-title>Foo</v-list-item-title>
+          </v-list-item>
+
+          <v-list-item>
+            <v-list-item-title>Bar</v-list-item-title>
+          </v-list-item>
+
+          <v-list-item>
+            <v-list-item-title>Fizz</v-list-item-title>
+          </v-list-item>
+
+          <v-list-item>
+            <v-list-item-title>Buzz</v-list-item-title>
+          </v-list-item>
+        </v-list-item-group>
+      </v-list>
+    </v-navigation-drawer>
+
+    <v-main>
+      <v-container>
+        <template v-if="page == null">
+          <v-skeleton-loader type="list-item" />
+          <v-skeleton-loader type="list-item" />
+          <v-skeleton-loader type="list-item" />
+          <v-skeleton-loader type="list-item" />
+          <v-skeleton-loader type="list-item" />
+        </template>
+        <Preview
+          v-else
+          v-for="item in page.data.children"
+          :subreddit="item.data.subreddit"
+          :title="item.data.title"
+          :preview="item.data.preview"
+          :key="item.data.name"
+        />
+      </v-container>
+    </v-main>
+  </v-app>
 </template>
 
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-}
+<script lang="ts">
+import Vue from "vue";
+import { Component } from "vue-property-decorator";
+import Preview from "@/components/Preview.vue";
+import Axios from "axios";
 
-#nav {
-  padding: 30px;
-}
+@Component({ components: { Preview } })
+export default class App extends Vue {
+  drawer = false;
 
-#nav a {
-  font-weight: bold;
-  color: #2c3e50;
-}
+  page: { data: { children: { data: unknown; kind: "t3" }[] } } | null = null;
 
-#nav a.router-link-exact-active {
-  color: #42b983;
+  async mounted() {
+    this.page = (
+      await Axios.get(
+        "https://cors-anywhere.herokuapp.com/https://reddit.com/r/popular.json"
+      )
+    ).data;
+  }
 }
-</style>
+</script>
